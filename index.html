@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider Puzzle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #000000, #3d184e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            color: #fff;
+            overflow: auto;
+            text-wrap: wrap;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+            text-wrap: wrap;
+        }
+
+        .title h1 {
+            font-size: 36px;
+            margin: 0;
+            text-shadow: 0 0 10px #9b59b6, 0 0 20px #9b59b6;
+            text-wrap: wrap;
+        }
+
+        .title p {
+            font-size: 18px;
+            color: #bbb;
+            margin: 10px 0 0;
+            text-wrap: wrap;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            text-wrap: wrap;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #9b59b6;
+            text-shadow: 0 0 10px #9b59b6, 0 0 20px #9b59b6;
+            margin-bottom: 20px;
+        }
+
+        .puzzle {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tile {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tile.empty {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .tile:hover:not(.empty) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.8);
+        }
+
+        .message {
+            font-size: 20px;
+            font-weight: bold;
+            color: #9b59b6;
+            display: none;
+            margin-top: 20px;
+            text-shadow: 0 0 10px #9b59b6, 0 0 20px #9b59b6;
+            text-wrap: wrap;
+        }
+
+        .qr-code {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 1s ease-in-out;
+            justify-content: center;
+        }
+
+        .linkclick a {
+            /* text-decoration: none; */
+            color: #fff;
+            text-shadow: 0 0 10px #a200ff, 0 0 20px #a200ff;
+        }
+
+        .qr-code img {
+            width: 200px;
+            height: 200px;
+            margin-left: 47px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.3);
+            justify-content: center;
+        }
+
+
+
+        .qr-code p {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #9b59b6;
+            text-shadow: 0 0 10px #9b59b6, 0 0 20px #9b59b6;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+
+    <div class="title">
+        <h1>E-Cell Slider Puzzle</h1>
+        <p>Solve the puzzle within the time limit to reveal the QR code!</p>
+    </div>
+
+
+    <div class="container">
+        <div class="timer" id="timer">Time Left: 60</div>
+        <div class="puzzle" id="puzzle">
+        </div>
+        <div class="message" id="message"></div>
+        <div class="qr-code" id="qrCode">
+            <h3>Here's your QR Code:</h3>
+            <a href="https://www.ecellvitbhopal.in/e_summit_2024/">
+                <div id="qrcode"></div>
+            </a>
+            <p>Scan this QR code</p>
+            <p class="linkclick"> <a href="https://www.ecellvitbhopal.in/e_summit_2024/">or click to visit a special
+                    page!</a></p>
+        </div>
+    </div>
+
+    <script>
+        const particlesConfig = {
+            particles: {
+                number: {
+                    value: 150,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: "#9b59b6"
+                },
+                shape: {
+                    type: "circle"
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false,
+                    anim: {
+                        enable: false,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: {
+                        enable: false,
+                        speed: 40,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#9b59b6",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: "none",
+                    random: false,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 600,
+                        rotateY: 1200
+                    }
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: "repulse"
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: "push"
+                    },
+                    resize: true
+                },
+                modes: {
+                    repulse: {
+                        distance: 100,
+                        duration: 0.4
+                    },
+                    push: {
+                        particles_nb: 4
+                    }
+                }
+            },
+            retina_detect: true
+        };
+
+
+        particlesJS("particles-js", particlesConfig);
+
+
+        const puzzleContainer = document.getElementById('puzzle');
+        const timerDisplay = document.getElementById('timer');
+        const message = document.getElementById('message');
+        const qrCode = document.getElementById('qrCode');
+        const size = 3;
+        let tiles = [];
+        let emptyTile = { row: size - 1, col: size - 1 };
+        let timeLeft = 60;
+        let timerInterval;
+
+        // Initialize the puzzle
+        function initializePuzzle() {
+            tiles = [];
+            for (let i = 0; i < size * size - 1; i++) {
+                tiles.push(i + 1);
+            }
+            tiles.push(null);
+            shuffleTiles();
+            renderPuzzle();
+            startTimer();
+        }
+
+
+        function shuffleTiles() {
+            for (let i = tiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+            }
+
+            if (!isSolvable()) {
+                shuffleTiles();
+            }
+        }
+
+
+        function isSolvable() {
+            let inversions = 0;
+            for (let i = 0; i < tiles.length - 1; i++) {
+                for (let j = i + 1; j < tiles.length; j++) {
+                    if (tiles[i] !== null && tiles[j] !== null && tiles[i] > tiles[j]) {
+                        inversions++;
+                    }
+                }
+            }
+            return inversions % 2 === 0;
+        }
+
+
+        function renderPuzzle() {
+            puzzleContainer.innerHTML = '';
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col < size; col++) {
+                    const index = row * size + col;
+                    const tileValue = tiles[index];
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    if (tileValue === null) {
+                        tile.classList.add('empty');
+                        emptyTile = { row, col };
+                    } else {
+                        tile.textContent = tileValue;
+                        tile.addEventListener('click', () => moveTile(row, col));
+                    }
+                    puzzleContainer.appendChild(tile);
+                }
+            }
+        }
+
+        function moveTile(row, col) {
+            const directions = [
+                { row: row - 1, col }, // Up
+                { row: row + 1, col }, // Down
+                { row, col: col - 1 }, // Left
+                { row, col: col + 1 } // Right
+            ];
+            for (const dir of directions) {
+                if (dir.row === emptyTile.row && dir.col === emptyTile.col) {
+
+                    const currentIndex = row * size + col;
+                    const emptyIndex = emptyTile.row * size + emptyTile.col;
+                    [tiles[currentIndex], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[currentIndex]];
+                    renderPuzzle();
+                    checkWin();
+                    break;
+                }
+            }
+        }
+
+
+        function checkWin() {
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i] !== i + 1) {
+                    return;
+                }
+            }
+            clearInterval(timerInterval);
+            message.textContent = "Congratulations!";
+            message.style.display = 'block';
+            qrCode.style.display = 'block';
+            puzzleContainer.style.display = "none";
+
+
+            // Generate the QR code
+            const qrCodeElement = document.getElementById('qrcode');
+            qrCodeElement.innerHTML = '';
+            new QRCode(qrCodeElement, {
+                text: "https://www.ecellvitbhopal.in/e_summit_2024/",
+                width: 200,
+                height: 200,
+                colorDark: "#0000",
+                colorLight: "#9b59b6",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Time Left: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    message.textContent = "No problem if you lost!";
+                    message.style.display = 'block';
+                    qrCode.style.display = 'block';
+                    timer.style.display = 'block';
+                    puzzleContainer.style.display = "none";
+                    const qrCodeElement = document.getElementById('qrcode');
+                    qrCodeElement.innerHTML = '';
+                    new QRCode(qrCodeElement, {
+                        text: "https://www.ecellvitbhopal.in/e_summit_2024/",
+                        width: 200,
+                        height: 200,
+                        colorDark: "#0000",
+                        colorLight: "#9b59b6",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+
+                }
+            }, 1000);
+        }
+
+        initializePuzzle();
+    </script>
+</body>
+
+</html>
